@@ -1,0 +1,2 @@
+EmailEvents
+| where EmailDirection == "Inboud" and DistributionList  != ""
