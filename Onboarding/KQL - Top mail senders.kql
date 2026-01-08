@@ -1,0 +1,6 @@
+// This query helps reviewing top 100 senders in your organization in last 30 days
+// This query was updated from https://github.com/Azure/Azure-Sentinel/tree/master/Hunting%20Queries/Microsoft%20365%20Defender/Microsoft%20365%20Defender/Email%20and%20Collaboration%20Queries/Mailflow/Top%20100%20senders.yaml
+EmailEvents 
+| where Timestamp > ago(30d)
+| summarize mailCountBySender = count() by SenderMailFromAddress 
+| top 100 by mailCountBySender
