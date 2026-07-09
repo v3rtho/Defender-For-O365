@@ -1,0 +1,52 @@
+// Find the max send
+
+EmailEvents
+| where Timestamp >= ago(24h)
+| where EmailDirection == "Intra-org" // or Outbound
+| extend hour = datetime_part("Hour", Timestamp)
+| summarize emailCount = count(NetworkMessageId) by SenderFromAddress, hour
+| summarize maxEmailCount = max(emailCount) by SenderFromAddress
+| order by maxEmailCount desc
+| render columnchart // remove this line to see raw data
+
+// Calculate the hourly average
+
+EmailEvents
+| where EmailDirection == "Outbound" // or "Intra-org"
+| extend hour = datetime_part("Hour", Timestamp)
+| summarize emailCount = count(NetworkMessageId) by SenderFromAddress, hour
+| summarize avgEmailsPerHour = avg(emailCount) by SenderFromAddress
+| order by avgEmailsPerHour desc
+
+// Find the peak
+
+EmailEvents
+| where Timestamp >= ago(24h)
+| where EmailDirection == "Outbound" // or "Intra-org"
+| where SenderFromAddress == "" //fill in the sender
+| extend hour = datetime_part("Hour", Timestamp)
+| summarize emailCount = count(NetworkMessageId) by hour
+| order by hour asc
+| render linechart 
+
+// Max send over multiple days for a specific account
+
+EmailEvents
+| where Timestamp >= ago(10d)
+| where EmailDirection == "Outbound" // or "Intra-org"
+| where SenderFromAddress == "" //replace with specific email address
+| extend day = format_datetime(Timestamp, 'MM/dd/yyyy')
+| extend hour = datetime_part("Hour", Timestamp)
+| summarize emailCount = count(NetworkMessageId) by SenderFromAddress, day, hour
+| order by emailCount
+
+// The highest send emails per hour in the last 10 days
+
+EmailEvents
+| where Timestamp >= ago(10d)
+| where EmailDirection == "Outbound" // or "Intra-org"
+| extend day = format_datetime(Timestamp, 'MM/dd/yyyy')
+| extend hour = datetime_part("Hour", Timestamp)
+| summarize emailCount = count(NetworkMessageId) by SenderFromAddress, day, hour
+| summarize maxEmailCount = arg_max(emailCount, *) by SenderFromAddress
+| order by maxEmailCount desc
